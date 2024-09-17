@@ -1,0 +1,199 @@
+﻿@{
+    Layout = "~/Views/Shared/MainLayout.cshtml";
+    ViewData["Title"] = "Kontrol Noktası Ekle/Güncelle veya Pasif Hale Getir";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <title>@ViewData["Title"]</title>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .form-sections {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+
+        .form-section {
+            width: 45%;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #e0e0e0;
+            color: black;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+            .form-group label {
+                color: black;
+            }
+
+        .form-control {
+            color: black;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .alert {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .alert-info {
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+            color: #31708f;
+        }
+
+        .list-section {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .list-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .list-table th, .list-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+            }
+
+            .list-table th {
+                background-color: #343a40;
+                color: white;
+            }
+    </style>
+    <script>
+        window.onload = function () {
+            var controls = @Html.Raw(Json.Serialize(ViewBag.Controls));
+            if (controls && controls.length > 0) {
+                document.getElementById("control-list").scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="form-sections">
+            <div class="form-section">
+                <h2>Kontrol Noktası Ekle</h2>
+                <form method="post" asp-controller="Home" asp-action="AddRemoveControl">
+                    <div class="form-group">
+                        <label for="serverAddress">Sunucu Adresi:</label>
+                        <input type="text" id="serverAddress" name="serverAddress" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="controlPoint">Kontrol Noktası:</label>
+                        <input type="text" id="controlPoint" name="controlPoint" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary" name="action" value="add">Kontrol Noktası Ekle</button>
+                    </div>
+                    @if (ViewBag.SuccessAddMessage != null)
+                    {
+                        <div class="alert alert-info">@ViewBag.SuccessAddMessage</div>
+                    }
+                    @if (ViewBag.ErrorMessage != null)
+                    {
+                        <div class="alert alert-info">@ViewBag.ErrorMessage</div>
+                    }
+                </form>
+            </div>
+            <div class="form-section">
+                <h2>Kontrol Noktasını Pasife Al</h2>
+                <form method="post" asp-controller="Home" asp-action="AddRemoveControl">
+                    <div class="form-group">
+                        <label for="serverAddress">Sunucu Adresi:</label>
+                        <input type="text" id="serverAddress" name="serverAddress" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="controlPoint">Kontrol Noktası:</label>
+                        <input type="text" id="controlPoint" name="controlPoint" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-danger" name="action" value="remove">Kontrol Noktasını Pasife Al</button>
+                    </div>
+                    @if (ViewBag.SuccessRemoveMessage != null)
+                    {
+                        <div class="alert alert-info">@ViewBag.SuccessRemoveMessage</div>
+                    }
+                    @if (ViewBag.ErrorControlMessage != null)
+                    {
+                        <div class="alert alert-info">@ViewBag.ErrorControlMessage</div>
+                    }
+                    @if (ViewBag.ActivateMessage != null)
+                    {
+                        <div class="alert alert-info">@ViewBag.ActivateMessage</div>
+                    }
+                </form>
+                <form method="post" asp-controller="Home" asp-action="ListControls">
+                    <button type="submit" class="btn btn-warning">Kontrol Noktalarını Listele</button>
+                </form>
+            </div>
+        </div>
+        <div id="control-list" class="list-section">
+            @if (ViewBag.Controls != null)
+            {
+                <table class="list-table">
+                    <thead>
+                        <tr>
+                            <th>Kontrol Noktası ID</th>
+                            <th>Kontrol Noktası Adı</th>
+                            <th>Sunucu Adı</th>
+                            <th>Sunucu Adresi</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var control in ViewBag.Controls)
+                        {
+                            <tr>
+                                <td>@control.MaintenancePointId</td>
+                                <td>@control.MaintenancePointName</td>
+                                <td>@control.ServerName</td>
+                                <td>@control.ServerAddress</td>
+                                <td>
+                                    @if (control.IsActive)
+                                    {
+                                        <form method="post" asp-controller="Home" asp-action="AddRemoveControl">
+                                            <input type="hidden" name="controlPoint" value="@control.MaintenancePointName" />
+                                            <input type="hidden" name="serverAddress" value="@control.ServerAddress" />
+                                            <button type="submit" class="btn btn-danger" name="action" value="remove">Pasife Al</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form method="post" asp-controller="Home" asp-action="ActivateControl">
+                                            <input type="hidden" name="maintenancePointId" value="@control.MaintenancePointId" />
+                                            <button type="submit" class="btn btn-success">Aktif Et</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</body>
+</html>

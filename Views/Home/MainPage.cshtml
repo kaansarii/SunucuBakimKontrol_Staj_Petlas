@@ -1,0 +1,202 @@
+﻿@model (DateTime startDate, DateTime endDate, List<SunucuBakimKontrol.Models.Server> servers)
+
+@{
+    Layout = "~/Views/Shared/MainLayout.cshtml";
+    ViewData["Title"] = "Sunucu ve Bakım Kontrol Noktaları";
+    var holidays = ViewBag.Holidays as List<DateTime>;
+}
+
+<style>
+    .table-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 50px;
+
+    }
+
+    .table {
+        width: 100%;
+        max-width: 1200px;
+        border-collapse: collapse;
+        border: 1px solid #ccc;
+    }
+
+        .table th, .table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .table th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 70px;
+            z-index: 1000;
+        }
+
+    .check-mark, .cross-mark, .not-done-mark {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+
+    .check-mark {
+        color: green;
+    }
+
+    .cross-mark {
+        color: red;
+        cursor: pointer;
+    }
+
+    .not-done-mark {
+        color: orange;
+    }
+
+    .vertical-header {
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+    }
+
+    .export-container {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    .table th.weekend, .holiday {
+        background-color: black !important;
+        color: white !important;
+    }
+
+    .holiday {
+        background-color: darkgrey !important;
+        color: white !important;
+    }
+
+    .date-picker-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        align-items: center;
+    }
+
+        .form-group label {
+            margin-right: 10px;
+
+        }
+
+    .btn-warning {
+        width: 350px; 
+    }
+
+    .form-group input[type="date"] {
+        margin-right: 10px; 
+    }
+</style>
+
+<div class="date-picker-container">
+    <form asp-action="MarkHoliday" method="post">
+        <div class="form-group">
+            <label for="holidayDate">Tarih Seçin:</label>
+            <input type="date" id="holidayDate" name="holidayDate" class="form-control" />
+            <button type="submit" class="btn btn-warning ml-2">Tatil İşaretle</button>
+        </div>
+    </form>
+</div>
+
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Sunucu Adresi</th>
+                <th>Bakım Kontrol Noktası</th>
+                <th style="width: 200px;">Sorumlu</th>
+                @for (var date = Model.startDate; date <= Model.endDate; date = date.AddDays(1))
+                {
+                    var isWeekend = date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
+                    var isHoliday = holidays.Contains(date);
+                    <th class="vertical-header @(isWeekend || isHoliday ? "holiday" : "")" data-date="@date.ToString("yyyy-MM-dd")">@date.ToString("dd/MM/yyyy")</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var server in Model.servers)
+            {
+                foreach (var point in server.MaintenancePoints)
+                {
+                    <tr>
+                        <td>@server.ServerAddress</td>
+                        <td>@point.MaintenancePointName</td>
+                        <td>@server.Responsible?.FirstName @server.Responsible?.LastName</td>
+                        @for (var date = Model.startDate; date <= Model.endDate; date = date.AddDays(1))
+                        {
+                            var isWeekend = date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
+                            var isHoliday = holidays.Contains(date);
+                            if (isWeekend || isHoliday)
+                            {
+                                <td class="maintenance-cell holiday" data-date="@date.ToString("yyyy-MM-dd")"></td>
+                            }
+                            else
+                            {
+                                var log = point.MaintenanceLogs.FirstOrDefault(ms => ms.LogDate.Date == date.Date);
+                                if (log != null)
+                                {
+                                    <td class="maintenance-cell" data-date="@date.ToString("yyyy-MM-dd")">
+                                        @if (log.IsCompleted)
+                                        {
+                                            <span class="check-mark" title="Tamamlandı">&#10003;</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="cross-mark" title="@log.NotCompletedReason">&#10007;</span>
+                                        }
+                                    </td>
+                                }
+                                else if (date.Date < DateTime.Today.Date)
+                                {
+                                    <td class="maintenance-cell" data-date="@date.ToString("yyyy-MM-dd")">
+                                        <span class="not-done-mark" title="Bugün Bakım Yapılmadı">&#8211;</span>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td class="maintenance-cell" data-date="@date.ToString("yyyy-MM-dd")"></td>
+                                }
+                            }
+                        }
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+<div class="export-container">
+    <form asp-action="ExportToExcel" method="post">
+        <input type="hidden" name="startDate" value="@Model.startDate.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="endDate" value="@Model.endDate.ToString("yyyy-MM-dd")" />
+        <button type="submit" class="btn btn-success">Excel Olarak İndir</button>
+    </form>
+</div>
+
+<script>
+    // Sayfa yüklendiğinde hafta sonlarını otomatik olarak tatil olarak işaretle
+    document.querySelectorAll('.table th').forEach(function (headerCell) {
+        var date = new Date(headerCell.getAttribute('data-date'));
+        if (date.getDay() === 6 || date.getDay() === 0) { // Cumartesi veya Pazar
+            headerCell.classList.add('holiday');
+            document.querySelectorAll('.maintenance-cell[data-date="' + headerCell.getAttribute('data-date') + '"]').forEach(function (cell) {
+                cell.classList.add('holiday');
+                cell.innerHTML = '';
+            });
+        }
+    });
+</script>
+    

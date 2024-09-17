@@ -1,0 +1,204 @@
+﻿@{
+    Layout = "~/Views/Shared/MainLayout.cshtml";
+    ViewData["Title"] = "Sunucu Ekle/Güncelle veya Pasif Hale Getir";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <title>@ViewData["Title"]</title>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .form-sections {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+
+        .form-section {
+            width: 45%;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #e0e0e0;
+            color: black;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+            .form-group label {
+                color: black;
+            }
+
+        .form-control {
+            color: black;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .alert {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .alert-info {
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+            color: #31708f;
+        }
+
+        .list-section {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .list-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .list-table th, .list-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+            }
+
+            .list-table th {
+                background-color: #343a40;
+                color: white;
+            }
+    </style>
+    <script>
+        window.onload = function () {
+            var servers = @Html.Raw(Json.Serialize(ViewBag.Servers));
+            if (servers && servers.length > 0) {
+                document.getElementById("server-list").scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="form-sections">
+            <div class="form-section">
+                <h2>Sunucu Ekle veya Güncelle</h2>
+                <form method="post" asp-controller="Home" asp-action="AddRemoveServer">
+                    <div class="form-group">
+                        <label for="username">Kullanıcı Adı:</label>
+                        <input type="text" id="username" name="username" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="serverAddress">Sunucu Adresi:</label>
+                        <input type="text" id="serverAddress" name="serverAddress" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="serverName">Sunucu Adı:</label>
+                        <input type="text" id="serverName" name="serverName" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary" name="action" value="add">Sunucu Ekle veya Güncelle</button>
+                    </div>
+                    @if (ViewBag.AddMessage != null)
+                    {
+                        <div class="alert alert-info">@ViewBag.AddMessage</div>
+                    }
+                    @if (ViewBag.UpdateMessage != null)
+                    {
+                        <div class="alert alert-info">@ViewBag.UpdateMessage</div>
+                    }
+                    @if (ViewBag.ErrorMessage != null)
+                    {
+                        <div class="alert alert-info">@ViewBag.ErrorMessage</div>
+                    }
+                </form>
+            </div>
+            <div class="form-section">
+                <h2>Sunucu Pasife Al</h2>
+                <form method="post" asp-controller="Home" asp-action="AddRemoveServer">
+                    <div class="form-group">
+                        <label for="deleteServerAddress">Sunucu Adresi:</label>
+                        <input type="text" id="deleteServerAddress" name="serverAddress" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="deleteServerName">Sunucu Adı:</label>
+                        <input type="text" id="deleteServerName" name="serverName" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-danger" name="action" value="remove">Sunucu Pasife Al</button>
+                    </div>
+                    @if (ViewBag.RemoveMessage != null)
+                    {
+                        <div class="alert alert-info">@ViewBag.RemoveMessage</div>
+                    }
+                    @if (ViewBag.ActivateMessage != null)
+                    {
+                        <div class="alert alert-info">@ViewBag.ActivateMessage</div>
+                    }
+
+                </form>
+                <form method="post" asp-controller="Home" asp-action="ListServers">
+                    <button type="submit" class="btn btn-warning">Sunucu Listele</button>
+                </form>
+            </div>
+        </div>
+        <div id="server-list" class="list-section">
+            @if (ViewBag.Servers != null)
+            {
+                <table class="list-table">
+                    <thead>
+                        <tr>
+                            <th>Sunucu ID</th>
+                            <th>Sunucu Adı</th>
+                            <th>Sunucu Adresi</th>
+                            <th>Kullanıcı Adı</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var server in ViewBag.Servers)
+                        {
+                            <tr>
+                                <td>@server.ServerId</td>
+                                <td>@server.ServerName</td>
+                                <td>@server.ServerAddress</td>
+                                <td>@server.Name</td>
+                                <td>
+                                    @if (server.IsActive)
+                                    {
+                                        <form method="post" asp-controller="Home" asp-action="AddRemoveServer">
+                                            <input type="hidden" name="serverAddress" value="@server.ServerAddress" />
+                                            <input type="hidden" name="serverName" value="@server.ServerName" />
+                                            <button type="submit" class="btn btn-danger" name="action" value="remove">Pasife Al</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form method="post" asp-controller="Home" asp-action="ActivateServer">
+                                            <input type="hidden" name="serverId" value="@server.ServerId" />
+                                            <button type="submit" class="btn btn-success">Aktif Et</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</body>
+</html>

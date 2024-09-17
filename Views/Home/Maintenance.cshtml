@@ -1,0 +1,57 @@
+﻿@model MaintenanceViewModel
+
+@{
+    Layout = "~/Views/Shared/MainLayout.cshtml";
+    ViewData["Title"] = "Bakım";
+}
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @ViewBag.ErrorMessage
+    </div>
+}
+
+<form asp-action="Maintenance" method="post">
+    <div class="form-group">
+        <label for="Username">Kullanıcı Adı</label>
+        <input type="text" id="Username" name="Username" class="form-control" value="@Model?.Username" readonly />
+    </div>
+    <div class="form-group">
+        <label for="ServerAddress">Sunucu Adresi</label>
+        <input type="text" id="ServerAddress" name="ServerAddress" class="form-control" value="@Model?.ServerAddress" readonly />
+    </div>
+    <div class="form-group">
+        <label for="ServerName">Sunucu Adı</label>
+        <input type="text" id="ServerName" name="ServerName" class="form-control" value="@Model?.ServerName" readonly />
+    </div>
+
+    <div class="form-group">
+        <label for="SelectedPointId">Bakım Noktası</label>
+        <select id="SelectedPointId" name="SelectedPointId" class="form-control">
+            @if (Model?.MaintenancePoints != null)
+            {
+                @foreach (var point in Model.MaintenancePoints)
+                {
+                    <option value="@point.MaintenancePointId">@point.MaintenancePointName</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="MaintenanceDate">Bakım Tarihi</label>
+        <div class="form-control" style="background-color: #e9ecef; border: 1px solid #ced4da; padding: .375rem .75rem; height: calc(1.5em + .75rem + 2px);">
+            @DateTime.Now.ToString("yyyy-MM-dd")
+        </div>
+        <input type="hidden" id="MaintenanceDate" name="MaintenanceDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss")" readonly />
+    </div>
+
+    <div class="form-group">
+        <label for="NotCompletedReason">Tamamlanmama Nedeni</label>
+        <textarea id="NotCompletedReason" name="NotCompletedReason" class="form-control" placeholder="Tamamlanmadıysa sebebini yazınız"></textarea>
+    </div>
+
+    <button type="submit" name="action" value="complete" class="btn btn-success">Yapıldı</button>
+    <button type="submit" name="action" value="not_complete" class="btn btn-danger">Yapılmadı</button>
+</form>

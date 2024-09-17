@@ -1,0 +1,139 @@
+﻿@model SunucuBakimKontrol.Models.CombinedViewModel
+
+@{
+    Layout = "~/Views/Shared/MainLayout.cshtml";
+    ViewData["Title"] = "Kullanıcı Profili";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>@ViewData["Title"]</title>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .section {
+            width: 50%;
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #e0e0e0;
+        }
+
+        .section-title {
+            background-color: darkkhaki;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+            .form-group label {
+                color: black;
+            }
+
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .alert {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .profile-avatar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+            .profile-avatar img {
+                border-radius: 50%;
+                width: 175px;
+                height: 175px;
+                object-fit: cover;
+                border: 2px solid #ccc;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        }
+        @if (Model != null)
+        {
+            <div class="section">
+                <div class="profile-avatar">
+                    <img src="~/images/avatar.png" alt="User Avatar" />
+                </div>
+                <div class="form-group">
+                    <label for="username">Kullanıcı Adı:</label>
+                    <input type="text" id="username" class="form-control" value="@Model.Username" readonly />
+                </div>
+                <div class="form-group">
+                    <label for="firstName">Ad:</label>
+                    <input type="text" id="firstName" class="form-control" value="@Model.FirstName" readonly />
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Soyad:</label>
+                    <input type="text" id="lastName" class="form-control" value="@Model.LastName" readonly />
+                </div>
+            </div>
+            <div class="section">
+                <div class="section-title">Şifre Değiştir</div>
+                <form method="post" asp-action="ChangePassword">
+                    <input type="hidden" name="UserId" value="@Model.UserId" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="form-group">
+                        <label for="currentPassword">Mevcut Şifre:</label>
+                        <input type="password" id="currentPassword" name="CurrentPassword" class="form-control" required />
+                        <span asp-validation-for="CurrentPassword" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">Yeni Şifre:</label>
+                        <input type="password" id="newPassword" name="NewPassword" class="form-control" required />
+                        <span asp-validation-for="NewPassword" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Yeni Şifre Tekrar:</label>
+                        <input type="password" id="confirmPassword" name="ConfirmPassword" class="form-control" required />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Şifre Değiştir</button>
+                </form>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-danger">Kullanıcı bilgileri yüklenemedi.</div>
+        }
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.19.2/jquery.validate.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate.unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>
